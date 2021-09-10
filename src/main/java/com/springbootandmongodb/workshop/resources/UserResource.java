@@ -5,13 +5,14 @@ import com.springbootandmongodb.workshop.dto.UserDTO;
 import com.springbootandmongodb.workshop.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.fasterxml.jackson.databind.jsonFormatVisitors.JsonValueFormat.URI;
 
 @RestController
 @RequestMapping(value = "/users")
@@ -31,5 +32,17 @@ public class UserResource {
     @GetMapping("/{id}")
     public ResponseEntity<User> findById(@PathVariable String id) {
         return ResponseEntity.ok(userService.findById(id));
+    }
+
+    @PostMapping
+    public ResponseEntity<Void> insert(@RequestBody UserDTO userDTO) {
+        User user = userService.fromDTO(userDTO);
+        user = userService.insert(user);
+        java.net.URI uri = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(user.getId())
+                .toUri();
+        return ResponseEntity.created(uri).build();
     }
 }
